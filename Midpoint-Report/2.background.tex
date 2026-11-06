@@ -19,7 +19,7 @@ Modern x86 execution units are engineered primarily for normalized floating-poin
 
 Consequently, when an execution pipeline encounters a subnormal operand or generates a subnormal output under standard IEEE 754 compliance (where Flush-to-Zero and Denormals-are-Zero modes are disabled), the fast execution datapath cannot process the value. The CPU flushes the out-of-order execution pipeline and delegates processing to internal microcode assist routines (\texttt{fp\_assists}). Handling gradual underflow via microcode introduces a severe latency penalty of 80 to 200+ cycles ($\sim 30\text{--}70\text{ ns}$) per operation, creating a data-dependent timing side-channel.
 
-\subsection{Pixel Stealing Attack (Andrysco et al.)}
+\subsection{Pixel Stealing Attack}
 Web browsers enforce the Same-Origin Policy (SOP) to prevent malicious sites from accessing private cross-origin content. Although browsers allow cross-origin images to be embedded visually, direct pixel inspection via APIs such as HTML5 canvas element extraction is explicitly blocked. Andrysco et al. ~\cite{andrysco2015subnormal} demonstrated that subnormal execution timing can be exploited to bypass these SOP restrictions and reconstruct cross-origin pixel data over the web:
 \begin{enumerate}
     \item \textbf{SVG Filter Processing:} A target cross-origin image is rendered inside an HTML5/SVG container. The attacker applies a custom SVG filter primitive (such as \texttt{feColorMatrix} or \texttt{feConvolveMatrix}) that scales normalized pixel color channel values $I \in [0.0, 1.0]$ by a minute scalar $\alpha \approx 10^{-42}$.
@@ -28,5 +28,5 @@ Web browsers enforce the Same-Origin Policy (SOP) to prevent malicious sites fro
         \item Non-Black Pixels ($I > 0$): Multiplying a non-zero color intensity by $\alpha$ yields a subnormal result ($\alpha I \approx 10^{-42}$). This repeatedly triggers microcode assist traps during rendering, significantly stalling the browser execution pipeline.
         \item Black Pixels ($I = 0$): Multiplying zero by $\alpha$ yields exact zero ($0.0$), completing immediately on the fast hardware execution path without latency.
     \end{itemize}
-    \item \textbf{Pixel Extraction:} By measuring frame render latencies using browser timing mechanisms (such as \texttt{requestAnimationFrame} or CSS repaint callbacks), the attacker classifies individual pixels as black or non-black based on rendering speed. Repeating this process across a target pixel grid progressively leaks private visual content.
+    \item \textbf{Pixel Extraction:} By measuring frame render latencies using browser timing mechanisms (such as requestAnimationFrame or CSS repaint callbacks), the attacker classifies individual pixels as black or non-black based on rendering speed. Repeating this process across a target pixel grid progressively leaks private visual content.
 \end{enumerate}
