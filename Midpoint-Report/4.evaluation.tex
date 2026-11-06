@@ -1,4 +1,22 @@
 \section{Evaluation}
 \label{sec:evaluation}
 
-Explain your evaluation setup and results.
+\subsection{Timing Data}
+We collected timing data for floating-point adds and multiplies across a wide range of ARM and x86 processors, which were sourced from either personal laptops or server compute machines, such as the ECE LRC machines. The results are summarized in Figure ~\ref{fig:fp_timing_data}.
+
+On the Apple M1 and M5 chips, there is no significant timing difference between normal and subnormal operands for both add and multiply. This is expected, since Apple silicon has full hardware support for subnormal floating-point operations and can execute at full speed.
+
+On the four Intel chips, including the Intel Xeon 5218 used by the ECE LRC machines, we see significant deltas between normal and subnormal execution. This is due to the microcode assist sequence discussed in Section ~\ref{sec:background}. The pipeline must be flushed, and a special microcode sequence must occur to correctly handle subnormal execution.
+
+TODO: what is happening on AMD EPYC Milan?
+
+TODO: what is happening on NVIDIA Grace?
+
+This data provides valuable information for the direction of our attack. Apple chips, AMD EPYC Milan, and NVIDIA Grace are out of the question if we continue with the method of exploiting subnormal timing differences, since they have no measurable difference. We will likely continue using the Intel Xeon 5218, since we have easy access to it via the ECE LRC servers, and it has dramatic timing differences.
+
+\begin{figure}[htbp]
+    \includegraphics[width=\linewidth]{images/fp_timing_data.png} 
+    \caption{Time to perform floating-point instructions, measured in ns/op. Note the y-axis for each graph is different. }
+    \label{fig:fp_timing_data} % Unique label used for referencing this figure
+\end{figure}
+

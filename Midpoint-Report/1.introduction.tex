@@ -1,5 +1,12 @@
 \section{Introduction}
 \label{sec:introduction}
 
-The introduction of your awesome project.
+Browsers are designed around the same-origin policy, which
+prevents one website from directly inspecting the contents
+of another website. Despite this isolation, webpages still
+share underlying resources such as the CPU, GPU, caches,
+and browser rendering system. Differences in how these
+resources behave while processing particular visual content
+can potentially leak information through a side channel.
 
+There are various methods to leak pixel information, including exploitation of software timing differences ~\cite{stone2013pixel}, hardware timing differences ~\cite{andrysco2015subnormal}, GPU compression ~\cite{wang2024gpuzip}, and microarchitectural cache state ~\cite{oconnell2024pixelthief}. Our initial approach is to exploit hardware timing differences of subnormal floating point computation. 

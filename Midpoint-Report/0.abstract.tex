@@ -1,5 +1,9 @@
 \begin{abstract}
 
-The abstract of the project report
+Modern web browsers enforce isolation between websites
+so that a malicious webpage should not be able to directly
+read the contents of another origin. However, side-channel
+attacks can sometimes infer information indirectly through
+shared browser and hardware resources. This project attempts to replicate the pixel stealing attack proposed by Andrysco et al. ~\cite{andrysco2015subnormal}, which exploits hardware timing differences when computing on subnormal numbers. We first begin by investigating subnormal timing differences on different CPUs to determine the viability of the method and the potential attack surface. We then set up attacker and victim websites, confirm that the same-origin policy prevents direct access of the victim, then attempt to infer pixel colors from timing differences.
 
 \end{abstract}

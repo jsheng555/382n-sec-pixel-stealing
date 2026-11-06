@@ -1,9 +1,13 @@
 \section{Threat Model}
 \label{sec:threat}
 
-Describe your threat model.
+We assume that an attacker controls a malicious website and convinces a user to visit it. The attacker does not have direct access to the victim website's DOM, memory, network traffic, or authentication information. Instead, the attacker can only execute ordinary browser code from the malicious origin and observe side-channel measurements exposed through shared browser or hardware behavior.
+
+For our experiments, the victim is a webpage that we control and populate with a small 8x8 grid of pixels, half of which are black, and half of which are white. This gives us ground truth for evaluating the attack.
 
 \section{Our Approach}
 \label{sec:approach}
 
-Describe your approach to the problem.
+Since our intended method of leaking pixel information is to exploit subnormal timing differences as done in ~\cite{andrysco2015subnormal}, we began by first gathering data on various CPUs. We developed two programs to evaluate the performance of floating-point addition and multiplication using both normal and subnormal operands. Separate implementations were written for the ARM and x86 ISAs, allowing us to measure execution times across a range of processors. By comparing the timing differences between normal and subnormal operations, we investigated how these variations depend on the underlying ISA and processor architecture, identifying potential targets for our subsequent attack. Preliminary results demonstrated that the method of exploiting subnormal timing differences is viable for our attack, at least on some processors. Results are discussed in further detail in Section ~\ref{sec:evaluation}.
+
+TODO TODO TODO TODO TODO We also began setting up the attack. So far, we have set up a victim website, consisting of an 8x8 grid of black and white pixels, and an attack website, which is able to extract a pixel and measure timing, but does not apply any SVG filters, and as such does not exhibit any timing differences. This is left to future work.
