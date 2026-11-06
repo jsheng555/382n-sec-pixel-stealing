@@ -1,6 +1,6 @@
 # Basic setup 
 
-A local victim/attacker setup. 
+A victim/attacker setup. 
 It selects a pixel, verify origin isolation, and record baseline frame timing. Does not yet apply the paper's subnormal SVG filter or recover pixel values.
 
 ## Run
@@ -8,6 +8,10 @@ It selects a pixel, verify origin isolation, and record baseline frame timing. D
 ```sh
 python3 subnormal_stealing/serve.py
 ```
+
+## Overview
+The attacker page embeds the victim page in an iframe and confirms it can’t read the victim’s pixels directly. It then isolates one pixel by scrolling the iframe behind a 1×1 window and scaling it, and does timing by measuring the interval between two requestAnimationFrame callbacks with performance.now().
+Since SVG filter isn’t applied yet, that timing doesn’t depend on the pixel’s color so right now it recovers nothing
 
 ## Cross-origin setup: serve.py
 http://127.0.0.1:8000 — the attacker origin. Serves `index.html` and `attacker.js`(controls and logic)
