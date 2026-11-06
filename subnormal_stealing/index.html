@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel timing lab</title>
+<style>
+  body { max-width: 840px; margin: 32px auto; padding: 0 20px; font: 16px/1.5 system-ui; color: #202932; }
+  h1 { margin-bottom: 0; }
+  label { display: inline-block; margin: 6px 16px 6px 0; }
+  input { width: 65px; }
+  button, select, input { font: inherit; padding: 5px; }
+  button { margin: 8px 6px 8px 0; }
+  .panels { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 16px; }
+  #inspection { position: relative; width: 200px; height: 200px; outline: 1px solid #64748b; }
+  #pixel { width: 1px; height: 1px; overflow: hidden; transform-origin: top left; transform: scale(200); }
+  iframe { display: block; position: relative; width: 8px; height: 8px; border: 0; }
+  #patch { position: absolute; inset: 0; display: none; }
+  #grid { display: grid; grid-template-columns: repeat(8, 26px); gap: 3px; }
+  #grid span { background: #e2e8f0; text-align: center; font-size: 12px; height: 26px; line-height: 26px; }
+  #grid .sampled { background: #93c5fd; }
+  #grid .selected { outline: 2px solid #1d4ed8; }
+  #status { padding: 10px; background: #eff6ff; }
+  small { color: #475569; }
+</style>
+<h1>Pixel timing lab</h1>
+<p>Select a pixel, verify origin isolation, and record baseline frame timing.</p>
+<label>X <input id="x" type="number" min="0" max="7" value="0"></label>
+<label>Y <input id="y" type="number" min="0" max="7" value="0"></label>
+<label>Area <select id="area"><option>100</option><option selected>200</option><option>300</option></select> px</label>
+<label>Samples/pixel <input id="samples" type="number" min="1" max="100" value="5"></label>
+<div>
+  <button id="calibrate" disabled>Measure black/white baseline</button>
+  <button id="scan" disabled>Scan timing</button>
+  <button id="stop" disabled>Stop</button>
+</div>
+<p id="boundary">Loading fixture…</p>
+<p id="status" role="status">Not calibrated.</p>
+<div class="panels">
+  <section><h2>Selected pixel</h2><div id="inspection"><div id="pixel"><iframe id="victim" title="Victim fixture" scrolling="no"></iframe></div><div id="patch"></div></div>
+    <p><small>1 CSS pixel enlarged for inspection.</small></p></section>
+  <section><h2>Scan progress</h2><div id="grid"></div><p id="summary">No samples collected.</p></section>
+</div>
+<script>const fixtureRunId = '__RUN_ID__';</script>
+<script src="/attacker.js"></script>
+</html>
