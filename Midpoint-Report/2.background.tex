@@ -12,15 +12,15 @@ When the exponent field is all zeros ($e = 0$), the value transitions to a subno
 \begin{equation}
 x_{\text{sub}} = (-1)^s \times (0.f)_2 \times 2^{-126}
 \end{equation}
-The smallest representable positive subnormal number has a significand bit pattern of \texttt{0x00000001}, corresponding to $2^{-149} \approx 1.4 \times 10^{-45}$. Subnormals support gradual underflow, bridging the gap between $0.0$ and $N_{\text{min}}$. This gradual decay preserves fundamental mathematical identities, guaranteeing that subtracting two distinct floating-point numbers will not evaluate to zero ($x \neq y \implies x - y \neq 0$), thereby preventing unexpected division-by-zero exceptions in numerical algorithms.
+The smallest positive subnormal has bit pattern \texttt{0x00000001}, or $2^{-149} \approx 1.4 \times 10^{-45}$. Subnormals support gradual underflow, bridging the gap between $0.0$ and $N_{\text{min}}$.
 
 \subsection{Microarchitectural Timing Asynchrony}
-Modern x86 execution units are engineered primarily for normalized floating-point operations, executing scalar or vector arithmetic in 1 to 4 clock cycles ($\sim 1\text{ ns}$). Implementing full dedicated hardware logic for subnormal normalization across all execution units requires substantial silicon area and power consumption.
+Modern x86 execution units are built for normalized operands, executing in 1 to 4 clock cycles ($\sim 1\text{ ns}$); full hardware support for subnormals across every execution unit would cost significant silicon and power.
 
 Consequently, when an execution pipeline encounters a subnormal operand or generates a subnormal output under standard IEEE 754 compliance (where Flush-to-Zero and Denormals-are-Zero modes are disabled), the fast execution datapath cannot process the value. The CPU flushes the out-of-order execution pipeline and delegates processing to internal microcode assist routines (\texttt{fp\_assists}). Handling gradual underflow via microcode introduces a severe latency penalty of 80 to 200+ cycles ($\sim 30\text{--}70\text{ ns}$) per operation, creating a data-dependent timing side-channel.
 
 \subsection{Pixel Stealing Attack}
-Web browsers enforce the Same-Origin Policy (SOP) to prevent malicious sites from accessing private cross-origin content. Although browsers allow cross-origin images to be embedded visually, direct pixel inspection via APIs such as HTML5 canvas element extraction is explicitly blocked. Andrysco et al. ~\cite{andrysco2015subnormal} demonstrated that subnormal execution timing can be exploited to bypass these SOP restrictions and reconstruct cross-origin pixel data over the web:
+Browsers enforce the Same-Origin Policy (SOP): a page may embed a cross-origin image but cannot read its pixels directly, for example through HTML5 canvas extraction. Andrysco et al. ~\cite{andrysco2015subnormal} showed that subnormal timing can bypass the SOP and reconstruct cross-origin pixels:
 \begin{enumerate}
     \item \textbf{SVG Filter Processing:} A target cross-origin image is rendered inside an HTML5/SVG container. The attacker applies a custom SVG filter primitive (such as \texttt{feColorMatrix} or \texttt{feConvolveMatrix}) that scales normalized pixel color channel values $I \in [0.0, 1.0]$ by a minute scalar $\alpha \approx 10^{-42}$.
     \item \textbf{Data-Dependent Latency:}
