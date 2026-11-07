@@ -9,4 +9,4 @@ and browser rendering system. Differences in how these
 resources behave while processing particular visual content
 can potentially leak information through a side channel.
 
-There are various methods to leak pixel information, including exploitation of software timing differences ~\cite{stone2013pixel}, hardware timing differences ~\cite{andrysco2015subnormal}, GPU compression ~\cite{wang2024gpuzip}, and microarchitectural cache state ~\cite{oconnell2024pixelthief}. Our initial approach is to exploit hardware timing differences of subnormal floating point computation. 
+There are various methods to leak pixel information, including exploitation of software timing differences ~\cite{stone2013pixel}, hardware timing differences ~\cite{andrysco2015subnormal}, GPU compression ~\cite{wang2024gpuzip}, and microarchitectural cache state ~\cite{oconnell2024pixelthief}. Our initial approach is to exploit hardware timing differences of subnormal floating point computation. We are also exploring GPU.zip as an alternative leaking method to subnormal timing.
