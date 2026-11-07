@@ -7,9 +7,9 @@ We measured floating-point add and multiply timing across a range of ARM and x86
 
 On the Apple M1 and M5 chips, there is no significant timing difference between normal and subnormal operands for both add and multiply. This is expected, since Apple silicon has full hardware support for subnormal floating-point operations and can execute at full speed.
 
-On the six Intel chips, including the Intel Xeon 5218 used by the ECE LRC machines, we see significant deltas between normal and subnormal execution. This is the slow microcode assist discussed in Section ~\ref{sec:background}, where the pipeline is flushed to handle the subnormal value. The penalty appears only for multiplication; subnormal addition runs at normal speed on every Intel chip we tested, so these chips evidently handle subnormal adds in hardware but fall back to the microcode assist for multiplies. For our attack, this means the SVG filter needs to create subnormal values through multiplication, which is how the \texttt{feColorMatrix} and \texttt{feConvolveMatrix} primitives scale pixel values.
+On the six Intel chips, including the Intel Xeon 5218 used by the ECE LRC machines, we see significant deltas between normal and subnormal execution. This is the slow microcode assist discussed in Section ~\ref{sec:background}, where the pipeline is flushed to handle the subnormal value. The penalty appears only for multiplication; subnormal addition runs at normal speed on every Intel chip we tested, so these chips evidently handle subnormal adds in hardware but fall back to the microcode assist for multiplies. For our attack, this means the SVG filter needs to create subnormal values through multiplication.
 
-The AMD EPYC Milan processor, which uses the Zen 3 microarchitecture, behaves very differently from the Intel chips. There is no penalty for subnormal addition (0.87 vs.\ 0.85 ns/op), and subnormal multiplication is only slightly slower than normal multiplication (1.14 vs.\ 0.90 ns/op). This difference of about 0.24 ns is roughly one clock cycle, about 100 times smaller than the 24--109 ns penalties we measured on the Intel chips. A penalty this small suggests Zen 3 handles subnormals in its normal floating-point hardware rather than through a microcode assist. We can measure it in a tight native loop, but it is unlikely to survive the noise of browser rendering and JavaScript's coarse timers.
+The AMD EPYC Milan processor, which uses the Zen 3 microarchitecture, behaves very differently from the Intel chips. There is no penalty for subnormal addition (0.87 vs.\ 0.85 ns/op), and subnormal multiplication is only slightly slower than normal multiplication (1.14 vs.\ 0.90 ns/op). This difference of about 0.24 ns is roughly one clock cycle, about 100 times smaller than the 24--109 ns penalties we measured on the Intel chips. A penalty this small suggests Zen 3 handles subnormals in its normal floating-point hardware rather than through a microcode assist. 
 
 The NVIDIA Grace processor, which is built from Arm Neoverse V2 cores ~\cite{nvidia2023grace}, shows no difference at all between normal and subnormal operands for either operation (0.61 ns/op for addition and 0.92 ns/op for multiplication in both cases). Like the Apple chips, these Arm cores handle subnormals at full speed. None of the three Arm chips we tested showed a penalty, so the attack is unlikely to work on Arm machines.
 
@@ -17,7 +17,7 @@ Given these results, we will target the Intel Xeon 5218: it shows a dramatic pen
 
 \begin{figure*}[tbp]
     \centering
-    \includegraphics[width=\textwidth]{images/fp_timing_data.png}
+    \includegraphics[width=0.85\textwidth]{images/fp_timing_data.png}
     \caption{Time to perform floating-point instructions, measured in ns/op. Note the y-axis for each graph is different.}
     \label{fig:fp_timing_data} % Unique label used for referencing this figure
 \end{figure*}
@@ -30,7 +30,7 @@ This is the key piece the attack is built on: the filter's math is more than ten
 
 \subsection{The Attack Setup}
 \label{sec:attack_setup}
-We host a victim and an attacker website on separate local ports via a small Python server. The victim shows an 8x8 grid of 32 black and 32 white pixels in random order, fixed until the server restarts, which gives us a known ground truth to compare against.
+We host a victim and an attacker website on separate local ports via a small Python server. The victim shows an 8x8 grid of black and white pixels, which gives us a known ground truth to compare against.
 
 The attack website loads the victim in a cross-origin iframe and confirms that the same-origin policy blocks it from reading the victim's DOM. It can then select a single pixel, enlarge it, and measure frame render times. Both calibration and scan modes work end to end, but since no SVG filter is applied yet, the frame times do not depend on pixel color and recover nothing.
 
