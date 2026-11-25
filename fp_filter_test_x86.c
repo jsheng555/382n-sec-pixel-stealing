@@ -41,11 +41,15 @@ subnormal intermediates (and the penalty) are not optimized away.
 static uint64_t get_tsc_frequency(void) {
     struct timespec start_time, end_time;
     uint64_t start_tsc, end_tsc;
+    uint32_t lo, hi;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-    asm volatile("lfence\n\trdtsc" : "=a"(start_tsc) : : "rdx");
+    // Full 64-bit EDX:EAX read 
+    asm volatile("lfence\n\trdtsc" : "=a"(lo), "=d"(hi));
+    start_tsc = ((uint64_t)hi << 32) | lo;
     struct timespec req = {0, 50000000}; // 50 ms calibration window
     nanosleep(&req, NULL);
-    asm volatile("lfence\n\trdtsc" : "=a"(end_tsc) : : "rdx");
+    asm volatile("lfence\n\trdtsc" : "=a"(lo), "=d"(hi));
+    end_tsc = ((uint64_t)hi << 32) | lo;
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     double elapsed_sec = (end_time.tv_sec - start_time.tv_sec) +
                          (end_time.tv_nsec - start_time.tv_nsec) * 1e-9;
