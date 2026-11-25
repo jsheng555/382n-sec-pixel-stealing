@@ -1,43 +1,53 @@
-# Basic setup 
+# Pixel stealing
 
-A victim/attacker setup. 
-It selects a pixel, verify origin isolation, and record baseline frame timing. Does not yet apply the paper's subnormal SVG filter or recover pixel values.
+Did this on linux server (Intel Xeon) with Firefox 27.0.1
 
-## Run
 
+## How to run it
+
+**1. Download Firefox 27.0.1 on LRC & VNC viewer** :
 ```sh
-python3 subnormal_stealing/serve.py
+wget https://ftp.mozilla.org/pub/firefox/releases/27.0.1/linux-x86_64/en-US/firefox-27.0.1.tar.bz2
+tar xjf firefox-27.0.1.tar.bz2
+```
+I downloaded [TigerVNC Viewer](https://github.com/TigerVNC/tigervnc/releases): tigervnc-1.16.2.exe
+
+
+**2. Make a profile**:
+```sh
+mkdir -p ~/ff27profile
+cat > ~/ff27profile/user.js <<'EOF'
+user_pref("browser.shell.checkDefaultBrowser", false);
+user_pref("app.update.enabled", false);
+EOF
 ```
 
-## Overview
-The attacker page embeds the victim page in an iframe and confirms it can’t read the victim’s pixels directly. It then isolates one pixel by scrolling the iframe behind a 1×1 window and scaling it, and does timing by measuring the interval between two requestAnimationFrame callbacks with performance.now().
-Since SVG filter isn’t applied yet, that timing doesn’t depend on the pixel’s color so right now it recovers nothing
+**3. Start a virtual display + VNC** :
+```sh
+mkdir -p ~/.vnc && vncpasswd ~/.vnc/passwd   
+Xvnc :1 -geometry 1024x768 -depth 24 -SecurityTypes VncAuth -PasswordFile ~/.vnc/passwd &
+export DISPLAY=:1
+```
+Run `ps aux | grep Xvnc`, look for `Xvnc:N`, where N is the number used for DISPLAY 
 
-## Cross-origin setup: serve.py
-http://127.0.0.1:8000 — the attacker origin. Serves `index.html` and `attacker.js`(controls and logic)
-http://127.0.0.1:8001 — the victim origin. Serves the secret 8×8 image and `truth.json`. loaded in attacker's iframe
+From Windows: `ssh -L 5901:localhost:5901 user@host`, then connect VNC viewer to `localhost:5901`, where the port is 5900 + N (mine was 1 but i'm not sure if it's always that)
 
-The secret: `pixels = [0]*32 + [1]*32`, `secrets.SystemRandom().shuffle(...)` — balanced image (in this case 32 black and 32 white), fixed for the life of the server
+**4. Start the server and Firefox:**
+```sh
+python3 subnormal_stealing/serve.py &
+./firefox/firefox -no-remote -profile ~/ff27profile http://127.0.0.1:8000
+```
 
-Victim: victim_html(pixels) — builds a small self-contained SVG document. One SVG unit maps to one CSS pixel. After load, it does `parent.postMessage('fixture-ready', 'http://127.0.0.1:8000')` to the attacker origin
+**5. In the Firefox window (via VNC):**
+1. Click **"Calibration"**
+2. Click **"Scan victim pixels"**
 
+The victim page is on 8001, super small image on the top left corner
 
-## Attacker logic: index.html, attacker.js
-HTML/CSS:
-`#victim` is the `<iframe>`, sized 8×8 CSS px
-`#pixel` wraps it, a 1px × 1px with overflow: hidden and transform: scale(200)
-`#inspection` is the 200×200 outlined box it all sits in
+**6. Check how well it recovered:**
+```sh
+python3 subnormal_stealing/score.py
+```
 
-attacker.js:
-- `selectPixel()`: Sets #victim.style.left = -x px and top = -y px. Line up (x, y) with the top-left corner, then the scale() enlarges that single clipped pixel to the chosen 100/200/300 px square
-- `sample()`: measures the interval between two consecutive `requestAnimationFrame` callbacks
-1. Measure black/white baseline is for calibration later
-2. Scan timing goes through each pixel and time each one and compare with T (But right now no filters are applied)
-
-
-
-
-## Notes
-When running Scan timing only, the blue grid cells mean sampled, and `?` means color unknown
-We can add some export to CSV or JSON for timing data if needed in the future
-
+## Next steps
+- Compare Area = 100 / 200 / 300

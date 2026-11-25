@@ -34,14 +34,20 @@ static inline uint32_t float_to_bits(float f) {
 static uint64_t get_tsc_frequency(void) {
     struct timespec start_time, end_time;
     uint64_t start_tsc, end_tsc;
+    uint32_t lo, hi;
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-    asm volatile("lfence\n\trdtsc" : "=a"(start_tsc) : : "rdx");
+    // Capture the full 64-bit counter (EDX:EAX). Reading only EAX ("=a")
+    // truncates to the low 32 bits, which wrap every ~1.4s at 3GHz -- a wrap
+    // between the start and end reads corrupts the frequency estimate.
+    asm volatile("lfence\n\trdtsc" : "=a"(lo), "=d"(hi));
+    start_tsc = ((uint64_t)hi << 32) | lo;
 
     struct timespec req = {0, 50000000}; // 50 ms calibration window
     nanosleep(&req, NULL);
 
-    asm volatile("lfence\n\trdtsc" : "=a"(end_tsc) : : "rdx");
+    asm volatile("lfence\n\trdtsc" : "=a"(lo), "=d"(hi));
+    end_tsc = ((uint64_t)hi << 32) | lo;
     clock_gettime(CLOCK_MONOTONIC, &end_time);
 
     double elapsed_sec = (end_time.tv_sec - start_time.tv_sec) +
